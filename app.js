@@ -59,16 +59,26 @@ const day = date.getDate();
 
 app.post("/", function(req, res){
 
-  const item = req.body.newItem;
+  const itemName = req.body.newItem;
+  const addedItem = new Item({
+    name:itemName,
+  })
+  addedItem.save();
 
-  if (req.body.list === "Work") {
-    workItems.push(item);
-    res.redirect("/work");
-  } else {
-    items.push(item);
-    res.redirect("/");
-  }
+  res.redirect('/')
 });
+app.post('/delete', function (req, res) {
+  const checkedItemId=req.body.checkbox;
+  Item.findByIdAndRemove(checkedItemId, (err)=>{
+    if(err){
+      console.log(err)
+    }else{
+      console.log("deleted item in db  successfully")
+    }
+    res.redirect('/')
+  });
+})
+
 
 app.get("/work", function(req,res){
   res.render("list", {listTitle: "Work List", newListItems: workItems});
