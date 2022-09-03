@@ -31,7 +31,11 @@ const item3=new Item({
 
 
 const defaultItems=[item1,item2,item3];
-
+const listSchema={
+  name:String,
+  items:[itemsSchema],
+}
+const List =mongoose.model("List",listSchema)
 
 
 app.get("/", function(req, res) {
@@ -79,10 +83,29 @@ app.post('/delete', function (req, res) {
   });
 })
 
-
-app.get("/work", function(req,res){
-  res.render("list", {listTitle: "Work List", newListItems: workItems});
-});
+app.get('/:customList', (req, res) => {
+  const customListName=req.params.customList
+  List.findOne({name:customListName},(err,foundList)=>{
+    if(!err){
+      if(!foundList){
+        //create a new list
+        console.log("not found ")
+        const list =new List({
+          name:customListName,
+          items:defaultItems
+        })
+        list.save()
+        res.redirect('/'+customListName)
+        console.log("List Created successfully")
+      }else{
+        //render the sxisting list
+        res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
+        console.log("found")
+      };
+    }
+  })
+  // res.render("list", {listTitle: customListName, newListItems: });
+})
 
 app.get("/about", function(req, res){
   res.render("about");
