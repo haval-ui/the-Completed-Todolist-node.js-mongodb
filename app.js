@@ -1,10 +1,9 @@
-//jshint esversion:6
 
 const express = require("express");
 const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
 const mongoose=require('mongoose');
-
+const day = "today";
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -44,9 +43,9 @@ app.get("/", function(req, res) {
     if ( docs.length === 0 ){
         Item.insertMany(defaultItems,(err)=>{
             if (err){
-              comsole.log(err)
+              console.log(err)
             }else{
-              console.log("successfully saved default itemsto DB")
+              console.log("successfully saved default items to DB")
             }
             res.redirect("/");
       });       
@@ -55,21 +54,32 @@ app.get("/", function(req, res) {
     }
   });
 
-const day = date.getDate();
+
 
   
 
 });
 
 app.post("/", function(req, res){
-
+  const listName =req.body.list;
   const itemName = req.body.newItem;
-  const addedItem = new Item({
+  
+  const foundItem = new Item({
     name:itemName,
   })
-  addedItem.save();
-
-  res.redirect('/')
+  if(listName=== day){
+    foundItem.save();
+    res.redirect('/');
+  }else{
+    List.findOne({name:listName },(err,foundList)=>{
+      // console.log(foundList.items)
+      foundList.items.push(foundItem);
+        foundList.save();
+        res.redirect('/'+listName);
+      
+      
+    })
+  }
 });
 app.post('/delete', function (req, res) {
   const checkedItemId=req.body.checkbox;
@@ -96,11 +106,11 @@ app.get('/:customList', (req, res) => {
         })
         list.save()
         res.redirect('/'+customListName)
-        console.log("List Created successfully")
+        
       }else{
-        //render the sxisting list
+        //render the existing list
         res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
-        console.log("found")
+        
       };
     }
   })
