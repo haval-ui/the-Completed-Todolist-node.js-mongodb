@@ -33,7 +33,7 @@ const defaultItems=[item1,item2,item3];
 const listSchema={
   name:String,
   items:[itemsSchema],
-}
+};
 const List =mongoose.model("List",listSchema)
 
 
@@ -83,15 +83,23 @@ app.post("/", function(req, res){
 });
 app.post('/delete', function (req, res) {
   const checkedItemId=req.body.checkbox;
-  Item.findByIdAndRemove(checkedItemId, (err)=>{
-    if(err){
-      console.log(err)
-    }else{
-      console.log("deleted item in db  successfully")
-    }
-    res.redirect('/')
-  });
-})
+  const listName =req.body.listName;
+
+  if(listName===day){
+    Item.findByIdAndRemove(checkedItemId, (err)=>{
+      if(!err){ 
+        console.log("deleted item in db  successfully");
+        res.redirect('/');
+      } 
+    });
+  }else{
+    List.findOneAndUpdate({name:listName}, {$pull:{items:{_id:checkedItemId }}}, (err,foundList)=>{
+      if(!err){
+        res.redirect('/'+listName); 
+      }
+    })
+  }
+});
 
 app.get('/:customList', (req, res) => {
   const customListName=req.params.customList
@@ -115,7 +123,7 @@ app.get('/:customList', (req, res) => {
     }
   })
   // res.render("list", {listTitle: customListName, newListItems: });
-})
+});
 
 app.get("/about", function(req, res){
   res.render("about");
